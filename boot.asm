@@ -12,7 +12,7 @@ Main:
     mov ds, ax
     mov es, ax
     mov ss, ax
-    mov sp, 0x7c00
+    mov sp, 0x7c00 ;stack pointer
     mov ax, 0x13 ;video mode 13h
     int 10h ;video services
     mov ax, 0A0000h
@@ -79,7 +79,7 @@ Main:
     int 0x10
     inc si
     jmp .disk_print
-.msg: db "disk_error", 0
+.msg: db "disk_error", 0 ; error message
 .bdrive db 0
 
 .done:
@@ -93,9 +93,8 @@ Main:
 .Long:
 
     hlt
-    jmp .Long
-    mov ax, 0x3
-    int 10h
+    jmp .Long ;hang
+    
 [BITS 16]
 
 .NoLongMode:
@@ -108,10 +107,10 @@ Main:
     hlt
     jmp .halt
 
-;%include "longMode.asm"
+;%include "longMode.asm" ;commented out longMode to have space for loading the second sector
 [BITS 16]
 
-NoLongMode db "64bit>CPU ", 0x0A, 0x0D, 0
+NoLongMode db "64bit long mode not supported. ", 0x0A, 0x0D, 0
 
 CheckCPU:
     pushfd
@@ -158,19 +157,19 @@ print:
     test al, al
     je .PrintDone
     mov ah, 0x0E
-    int 0x10
+    int 0x10 ;video services BIOS
     jmp .PrintLoop
 
 .PrintDone:
     popad
     ret
 
-times 510 - ($-$$) db 0
-dw 0xAA55
+times 510 - ($-$$) db 0 ;padding
+dw 0xAA55 ;boot signature
 ;next sector
     mov ax, 0x13 ;vga vid mode
     int 0x10 ;vid services
-    jmp $
+    jmp $ ;hang
 
 
 times 1024 - ($-$$) db 0 ; padding
